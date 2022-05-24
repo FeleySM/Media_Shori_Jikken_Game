@@ -1,0 +1,345 @@
+<!-- キーボードイベント -->
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sample</title>
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', exec); // body が読み込み終わるまで待つ
+
+        var width = 960;
+        var height = 600;
+        var side = 10;
+        var border = 200;
+        var scene;
+        var camera;
+        var mesh;
+        var renderer;
+        var light;
+        var isMouseclick = false; // マウスがクリックされたとき
+        var shiftx = 0,
+            shiftz = 0;
+        var gameOver = false;
+        var collisionCheck = false;
+        var collisionNumber = 0;
+        var lives = 3;
+        var points = 0;
+        var score = 0;
+        var cubeSpeed = 3;
+
+        var cube1, cube2, cube3;
+        const d = new Date();
+        var date = document.getElementById("clock");
+        var s, m, time = 0;
+
+        const doubleScoreColor = new THREE.Color(0x18a967)
+        const normalScoreColor = new THREE.Color(0xFF8888)
+        const negativeScoreColor = new THREE.Color(0xFF1821)
+
+        function getMousePos(canvas, event) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+        //Function to check whether a point is inside a rectangle
+        function isInside(pos, rect) {
+            return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.height && pos.y > rect.y
+        }
+
+
+
+
+        function init() {
+
+            //Binding the click event on the canvas
+            canvas.addEventListener('click', function(evt) {
+                var mousePos = getMousePos(canvas, evt);
+
+                if (isInside(mousePos, rect)) {
+                    alert('clicked inside rect');
+                } else {
+                    alert('clicked outside rect');
+                }
+            }, false);
+        }
+
+        function exec() {
+            // Mouseイベントの追加
+            document.addEventListener("click", function(e) {
+                if (isMouseclick == false) isMouseclick = true;
+                else isMouseclick = false;
+            });
+            // キーボタンを押したとき
+            document.addEventListener('keydown', function(e) {
+                switch (e.key) {
+                    case 'a' || "A":
+                        shiftx = -5;
+                        break;
+                    case 'd' || "D":
+                        shiftx = 5;
+                        break;
+                }
+            });
+
+            // キーを放したとき
+            document.addEventListener('keyup', function(e) {
+                switch (e.key) {
+                    case 'a' || "A":
+                        shiftx = 0;
+                        break;
+                    case 'd' || "D":
+                        shiftx = 0;
+                        break;
+                }
+            });
+
+
+            // シーンを作る
+            scene = new THREE.Scene();
+            // ライトの設定
+            light = new THREE.DirectionalLight(0xffffff, 1.0);
+            //light = new THREE.PointLight(0xFFFFFF, 2, 100, 1.0);
+            light.position.set(-1, 1, 1); // ライトの向きを変更
+            scene.add(light);
+            var amb_light = new THREE.AmbientLight(0xFFFFFF, 0.5);
+            scene.add(amb_light);
+
+            // 床面
+            var geometry1 = new THREE.BoxGeometry(border * 2, 0.1, border * 2);
+            var material1 = new THREE.MeshPhongMaterial({
+                color: 0x777777
+            });
+            var mesh1 = new THREE.Mesh(geometry1, material1);
+            mesh1.position.set(0, -border / 2, -side * 4);
+            // シーンにオブジェクトを追加
+            scene.add(mesh1);
+
+            spawnEnemies();
+            createPlayer();
+
+
+            // カメラを設定
+            camera = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
+            camera.position.set(0, 180, 100);
+            camera.lookAt(scene.position);
+
+            //レンダラを作成
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('canvas1')
+            });
+            renderer.setSize(width, height);
+
+            // カメラコントローラーを作成
+            //var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            update();
+        }
+
+        function update() {
+            document.getElementById("score").textContent = score;
+            checkPlayerBorders();
+            enemiesMove();
+
+            if (cube1.position.z >= border) {
+                spawnEnemies();
+                respawnEnemies();
+                collisionCheck = false;
+            }
+
+            checkCollision();
+
+
+            renderer.render(scene, camera);　 // レンダラーに描画することを命令する
+            requestAnimationFrame(update);
+        }
+
+        function addZero(i) {
+            if (i < 10) {
+                i = "0" + i
+            }
+            return i;
+        }
+
+        function showTime() {
+            s = addZero(d.getSeconds());
+            let time = s;
+            return time;
+        }
+
+        function enemiesMove() {
+            if (score >= 500 && score <= 1500) {
+                cubeSpeed = 5;
+            }
+            if (score >= 1600 && score <= 3000) {
+                cubeSpeed = 7;
+            }
+            if (score >= 1600 && score <= 3000) {
+                cubeSpeed = 9;
+            }
+            if (score > 3000) {
+                cubeSpeed = 11;
+            }
+            cube1.position.z += cubeSpeed;
+            cube2.position.z += cubeSpeed;
+            cube3.position.z += cubeSpeed;
+        }
+
+        function checkPlayerBorders() {
+            if (mesh.position.x > -border + side && mesh.position.x < border - side) {
+                mesh.position.x += shiftx;
+            }
+            if (mesh.position.z > -border + side && mesh.position.z < border - side) {
+                mesh.position.z += shiftz;
+            }
+
+            if (mesh.position.x <= -border + side) {
+                mesh.position.x = -border + side + 0.01;
+            } else if (mesh.position.x >= border - side) {
+                mesh.position.x = border - side - 0.01;
+            }
+
+            if (mesh.position.z <= -border + side) {
+                mesh.position.z = -border + side + 0.01;
+            } else if (mesh.position.z >= border - side) {
+                mesh.position.z = border - side - 0.01;
+            }
+        }
+
+        function spawnEnemies() {
+            var geometry = new THREE.BoxGeometry(side * 3, side * 3, side * 3);
+            var colors = ["", "", ""]
+            var randomNumber;
+
+            var randomX = []
+            for (let i = 0; i < 3; i++) {
+                randomNumber = Math.floor((Math.random() * (4 - 1) + 1))
+                console.log(randomNumber)
+                if (randomNumber == 1)
+                    colors[i] = normalScoreColor
+                if (randomNumber == 2)
+                    colors[i] = doubleScoreColor
+                if (randomNumber == 3)
+                    colors[i] = negativeScoreColor
+            }
+
+            var material1 = new THREE.MeshPhongMaterial({
+                color: normalScoreColor
+            });
+
+            var material2 = new THREE.MeshPhongMaterial({
+                color: colors[1]
+            });
+
+            var material3 = new THREE.MeshPhongMaterial({
+                color: colors[2]
+            });
+            cube1 = new THREE.Mesh(geometry, material1);
+            cube2 = new THREE.Mesh(geometry, material2);
+            cube3 = new THREE.Mesh(geometry, material3);
+
+
+            cube1.position.x = -border + side * 3;
+            cube1.position.y = -border / 2;
+            cube1.position.z = -border;
+
+            cube2.position.x = 0;
+            cube2.position.y = -border / 2;
+            cube2.position.z = -border;
+
+            cube3.position.x = border - side * 3;
+            cube3.position.y = -border / 2;
+            cube3.position.z = -border;
+            // シーンにオブジェクトを追加
+            scene.add(cube1);
+            scene.add(cube2);
+            scene.add(cube3);
+        }
+
+        function createPlayer() {
+            //<-- ここに立方体，青色のMeshを作成
+            var geometry2 = new THREE.BoxGeometry(40, 40, 40);
+            var material2 = new THREE.MeshPhongMaterial({
+                color: 0x0000FF
+            });
+            mesh = new THREE.Mesh(geometry2, material2);
+            mesh.position.set(0, -border / 2 + 10, 50);
+            scene.add(mesh);
+        }
+
+        function respawnEnemies() {
+            cube1.position.z = -border;
+            cube2.position.z = -border;
+            cube3.position.z = -border;
+        }
+
+        function checkCollision() {
+            if (collisionCheck == false) {
+                if (cube1.position.z <= mesh.position.z + side * 3 && cube1.position.z >= mesh.position.z - side * 3) {
+                    if (cube1.position.x + side * 3 >= mesh.position.x) {
+                        if (cube1.position.x - side * 3 <= mesh.position.x) {
+                            scene.remove(cube1)
+                            collisionCheck = true
+                            if (cube1.material.color.getHexString() == normalScoreColor.getHexString())
+                                score = score + 100
+                            else if (cube1.material.color.getHexString() == doubleScoreColor.getHexString())
+                                score = score + 200
+                            else
+                                score = score - 100
+                        }
+                    }
+                }
+
+                if (cube2.position.z <= mesh.position.z + side * 3 && cube2.position.z >= mesh.position.z - side * 3) {
+                    if (cube2.position.x + side * 3 >= mesh.position.x) {
+                        if (cube2.position.x - side * 3 <= mesh.position.x) {
+                            scene.remove(cube2)
+                            collisionCheck = true
+                            console.log(cube2.material.color.getHexString())
+                            if (cube2.material.color.getHexString() == normalScoreColor.getHexString())
+                                score = score + 100
+                            else if (cube2.material.color.getHexString() == doubleScoreColor.getHexString())
+                                score = score + 200
+                            else
+                                score = score - 100
+                        }
+                    }
+                }
+
+                if (cube3.position.z <= mesh.position.z + side * 3 && cube3.position.z >= mesh.position.z - side * 3) {
+                    if (cube3.position.x + side * 3 >= mesh.position.x) {
+                        if (cube3.position.x - side * 3 <= mesh.position.x) {
+                            scene.remove(cube3)
+                            collisionCheck = true
+                            if (cube3.material.color.getHexString() == normalScoreColor.getHexString())
+                                score = score + 100
+                            else if (cube3.material.color.getHexString() == doubleScoreColor.getHexString())
+                                score = score + 200
+                            else
+                                score = score - 100
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+</head>
+
+<body>
+    <h1>第6回メディア処理実験</h1>
+    <div id="startButtonId"><button>Start</button></div>
+    <div id="resetButtonId"><button>Reset</button></div>
+    <canvas id="canvas1" style="width: 960; height: 600;">
+        <button>Click</button>
+    </canvas>
+    <div>Play Time : <span id="clock">0</span></div>
+    <div>Score : <span id="score">0</span></div>
+</body>
+
+</html>
