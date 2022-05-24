@@ -83,31 +83,31 @@
             document.body.appendChild(stats.domElement);
             var startButton = document.getElementById('startButtonId');
             var resetButton = document.getElementById('resetButtonId');
-            // Start Button
+
             startButton.onclick = function StartAnimation() {
-                    if (initAnim) {
-                        initAnim = false;
-                        runAnim = true;
-                        isPlay = true;
-                        exec();
-                    }
-                    // Start and Pause
-                    if (runAnim) {
-                        startButton.textContent = 'Pause';
-                        runAnim = false;
-                        isPlay = true;
-                        update()
-                    } else {
-                        startButton.textContent = 'Restart';
-                        runAnim = true;
-                        isPlay = false;
-                    }
+                if (initAnim) {
+                    initAnim = false;
+                    runAnim = true;
+                    isPlay = true;
+                    exec();
                 }
-                // Reset Button
+
+                if (runAnim) {
+                    startButton.textContent = 'Pause';
+                    runAnim = false;
+                    isPlay = true;
+                    update()
+                } else {
+                    startButton.textContent = 'Restart';
+                    runAnim = true;
+                    isPlay = false;
+                }
+            }
+
             resetButton.onclick = function ResetParameters() {
-                // Set StartButton to Start
+
                 startButton.innerHTML = 'Start';
-                // Boolean for Stop Animation
+
                 initAnim = true;
                 runAnim = false;
                 isPlay = false;
@@ -198,7 +198,6 @@
             // カメラコントローラーを作成
             //var controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-            //update();
         }
 
         function update() {
