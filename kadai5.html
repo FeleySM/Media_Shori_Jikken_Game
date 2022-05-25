@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Sample</title>
+    <title>藤田フェリペ　課題5</title>
     <style>
         * {
             font-family: JP, Meiryo, "Roboto", sans-serif;
@@ -17,14 +17,14 @@
             text-transform: capitalize;
             transition: .2s linear;
         }
-        
+
         html {
             font-size: 100%;
             overflow-x: hidden;
             scroll-padding-top: 9rem;
             scroll-behavior: smooth;
         }
-        
+
         #canvas1 {
             position: relative;
         }
@@ -40,7 +40,7 @@
         var side = 10;
         var border = 200;
         var scene;
-        var camera;
+        var camera = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
         var mesh;
         var renderer;
         var light;
@@ -107,7 +107,6 @@
             resetButton.onclick = function ResetParameters() {
 
                 startButton.innerHTML = 'Start';
-
                 initAnim = true;
                 runAnim = false;
                 isPlay = false;
@@ -184,10 +183,11 @@
             createPlayer();
 
 
+
             // カメラを設定
-            camera = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
             camera.position.set(0, 180, 100);
             camera.lookAt(scene.position);
+
 
             //レンダラを作成
             renderer = new THREE.WebGLRenderer({
@@ -225,19 +225,6 @@
             checkCollision();
             enemiesMove();
             renderer.render(scene, camera);　 // レンダラーに描画することを命令する
-        }
-
-        function addZero(i) {
-            if (i < 10) {
-                i = "0" + i
-            }
-            return i;
-        }
-
-        function showTime() {
-            s = addZero(d.getSeconds());
-            let time = s;
-            return time;
         }
 
         function enemiesMove() {
@@ -297,7 +284,7 @@
             }
 
             var material1 = new THREE.MeshPhongMaterial({
-                color: normalScoreColor
+                color: colors[0]
             });
 
             var material2 = new THREE.MeshPhongMaterial({
@@ -353,13 +340,18 @@
                         if (cube1.position.x - side * 3 <= mesh.position.x) {
                             scene.remove(cube1)
                             collisionCheck = true
-                            if (cube1.material.color.getHexString() == normalScoreColor.getHexString())
-                                score = score + points
-                            else if (cube1.material.color.getHexString() == doubleScoreColor.getHexString())
-                                score = score + 2 * points
-                            else
-                                score = score - points
-                            totalScore += score;
+                            if (cube1.material.color.getHexString() == normalScoreColor.getHexString()){
+                                score += points
+                                totalScore += points
+                            }
+                            else if (cube1.material.color.getHexString() == doubleScoreColor.getHexString()){
+                                score += 2 * points
+                                totalScore += 2 * points
+                            }
+                            else{
+                                score -= points
+                                totalScore -= points
+                            }
                         }
                     }
                 }
@@ -369,13 +361,18 @@
                         if (cube2.position.x - side * 3 <= mesh.position.x) {
                             scene.remove(cube2)
                             collisionCheck = true
-                            if (cube2.material.color.getHexString() == normalScoreColor.getHexString())
-                                score = score + points
-                            else if (cube2.material.color.getHexString() == doubleScoreColor.getHexString())
-                                score = score + 2 * points
-                            else
-                                score = score - points
-                            totalScore += score;
+                            if (cube2.material.color.getHexString() == normalScoreColor.getHexString()){
+                                score += points
+                                totalScore += points
+                            }
+                            else if (cube2.material.color.getHexString() == doubleScoreColor.getHexString()){
+                                score += 2 * points
+                                totalScore += 2 * points
+                            }
+                            else{
+                                score -= points
+                                totalScore -= points
+                            }
                         }
                     }
                 }
@@ -385,16 +382,22 @@
                         if (cube3.position.x - side * 3 <= mesh.position.x) {
                             scene.remove(cube3)
                             collisionCheck = true
-                            if (cube3.material.color.getHexString() == normalScoreColor.getHexString())
-                                score = score + points
-                            else if (cube3.material.color.getHexString() == doubleScoreColor.getHexString())
-                                score = score + 2 * points
-                            else
+                            if (cube3.material.color.getHexString() == normalScoreColor.getHexString()){
+                                score += points
+                                totalScore += points
+                            }
+                            else if (cube3.material.color.getHexString() == doubleScoreColor.getHexString()){
+                                score += 2 * points
+                                totalScore += 2 * points
+                            }
+                            else{
                                 score = score - points
-                            totalScore += score;
+                                totalScore -= points
+                            }
                         }
                     }
                 }
+
             }
         }
     </script>
@@ -402,18 +405,23 @@
 </head>
 
 <body>
-    <h1>第6回メディア処理実験</h1>
+    <h1>ブロック衝突ゲーム</h1>
     <div id="startButtonId">Start</div>
     <div id="resetButtonId">Reset</div>
     <canvas id="canvas1" style="width: 960; height: 600;">
     </canvas>
-    <div>Points Now : <span id="score">0</span></div>
-    <div>Total Score : <span id="total_score">0</span></div>
+    <div>
+        <div>Points Now : <span id="score">0</span></div>
+        <div>Total Score : <span id="total_score">0</span></div>
+    </div>
     <div>
         Player Speed:
         <span id="speed">5</span>
         <br> Next Speed up at Score:
         <span id="nextSpeed">500</span>
+    </div>
+    <div>
+        More Info: <a href="https://github.com/FeleySM/Media_Shori_Jikken_Game" rel="noopener" target="_blank">https://github.com/FeleySM/Media_Shori_Jikken_Game</a>
     </div>
 </body>
 
